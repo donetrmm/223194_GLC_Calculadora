@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GLC Calculadora</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #121212;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #ffffff;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 1200px;
+            gap: 30px;
+        }
+
+        #calculator {
+            display: flex;
+            flex-direction: column;
+            background-color: #2b2b2b;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 80%;
+        }
+
+        .button-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .button {
+            padding: 20px;
+            font-size: 24px;
+            text-align: center;
+            cursor: pointer;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background-color: #333;
+            color: #fff;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+        }
+
+        .button:hover {
+            background-color: #444;
+            transform: scale(1.05);
+        }
+
+        #expression {
+            padding: 15px;
+            font-size: 26px;
+            text-align: right;
+            background-color: #333;
+            border: none;
+            color: #fff;
+            border-radius: 8px;
+        }
+
+        #result {
+            padding: 15px;
+            font-size: 24px;
+            text-align: right;
+            color: #4CAF50;
+            background-color: #282828;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        #treeContainer {
+            background-color: #2b2b2b;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            width: 70%;
+        }
+
+        #treeImage {
+            display: block;
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 0 auto;
+        }
+
+        .button-clear {
+            background-color: #FF6F61;
+        }
+
+        .button-equal {
+            background-color: #4CAF50;
+        }
+
+        .button-operator {
+            background-color: #FF9800;
+        }
+
+        .button-number {
+            background-color: #333;
+        }
+
+    </style>
+</head>
+<body>
+    <div>
+        <h1>GLC Calculadora</h1>
+        <div class="container">
+            <div id="calculator">
+                <input type="text" id="expression" disabled placeholder="Introduce una expresión">
+                <div id="result">Resultado: </div>
+                <div class="button-container">
+                    <div class="button button-clear" onclick="clearExpression()">C</div>
+                    <div class="button button-operator" onclick="appendToExpression('/')">/</div>
+                    <div class="button button-operator" onclick="appendToExpression('*')">*</div>
+                    <div class="button button-operator" onclick="appendToExpression('-')">-</div>
+
+                    <div class="button button-number" onclick="appendToExpression('7')">7</div>
+                    <div class="button button-number" onclick="appendToExpression('8')">8</div>
+                    <div class="button button-number" onclick="appendToExpression('9')">9</div>
+                    <div class="button button-operator" onclick="appendToExpression('+')">+</div>
+
+                    <div class="button button-number" onclick="appendToExpression('4')">4</div>
+                    <div class="button button-number" onclick="appendToExpression('5')">5</div>
+                    <div class="button button-number" onclick="appendToExpression('6')">6</div>
+                    <div class="button button-equal" onclick="calculateExpression()">=</div>
+
+                    <div class="button button-number" onclick="appendToExpression('1')">1</div>
+                    <div class="button button-number" onclick="appendToExpression('2')">2</div>
+                    <div class="button button-number" onclick="appendToExpression('3')">3</div>
+                    <div class="button button-number" onclick="appendToExpression('0')">0</div>
+
+                    <div class="button button-number" onclick="appendToExpression('.')">.</div>
+                </div>
+            </div>
+
+            <div id="treeContainer">
+                <h3>Árbol Sintáctico</h3>
+                <img id="treeImage" style="display:none;">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function appendToExpression(value) {
+            const expressionInput = document.getElementById("expression");
+            expressionInput.value += value;
+        }
+
+        function clearExpression() {
+            const expressionInput = document.getElementById("expression");
+            expressionInput.value = '';
+            document.getElementById("result").innerText = 'Resultado: ';
+            document.getElementById("treeImage").style.display = "none";
+        }
+
+        function calculateExpression() {
+            const expression = document.getElementById("expression").value;
+
+            if (expression) {
+                fetch("/validate", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ expression })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById("result");
+                    const treeImage = document.getElementById("treeImage");
+
+                    if (data.valid) {
+                        try {
+                            const result = eval(expression); 
+                            resultDiv.innerText = `Resultado: ${result}`;
+                        } catch (error) {
+                            resultDiv.innerText = "Error en la operación";
+                        }
+                        treeImage.style.display = "block";
+                        treeImage.src = data.image_url + "?" + new Date().getTime(); 
+                    } else {
+                        resultDiv.innerText = "Expresión no válida: " + data.message;
+                        treeImage.style.display = "none";
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>
